@@ -5,7 +5,10 @@ services:
     image: phpmyadmin/phpmyadmin
     container_name: phpmyadmin
     environment:
+      - PMA_HOST=mysql
+      - PMA_PORT=3306
       - PMA_ARBITRARY=1
+      - UPLOAD_LIMIT=500MB
     restart: always
     ports:
       - 8080:80
