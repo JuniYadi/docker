@@ -1,0 +1,9 @@
+version: '3.3'
+
+services:
+  phpmyadmin:
+    image: dockette/adminer:full-php5
+    container_name: adminer
+    restart: always
+    ports:
+      - 8080:80
