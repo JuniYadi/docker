@@ -1,0 +1,35 @@
+version: '2'
+
+services:
+    mongo:
+        container_name: node_nextjs_db
+        image: mongo
+        environment:
+            MONGO_INITDB_DATABASE: nodejs
+            MONGO_INITDB_ROOT_USERNAME: nodeuser
+            MONGO_INITDB_ROOT_PASSWORD: nodepass
+        volumes:
+            - ./data:/data/db
+        networks:
+            - code-network
+
+    node:
+        container_name: node_nextjs
+        image: node:12-alpine
+        user: 'node'
+        working_dir: /code
+        environment:
+            - NEXT_TELEMETRY_DISABLED=1
+        volumes:
+            - ./code:/code:rw,cached
+        networks:
+            - code-network
+        ports:
+            - '3000:3000'
+        command: 'yarn dev'
+        depends_on:
+            - mongo
+
+networks:
+    code-network:
+        driver: bridge

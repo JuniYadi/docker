@@ -1,0 +1,49 @@
+version: "2"
+
+services:
+  web:
+    image: nginx:alpine
+    container_name: webserver_laravel
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "5000:80"
+    volumes:
+      - ./code:/code:rw,cached
+      - ./nginx/conf.d/:/etc/nginx/conf.d/
+    networks:
+      - code-network
+    depends_on:
+      - mariadb
+
+  mariadb:
+    image: mariadb
+    volumes:
+      - ./data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: laravel_docker
+      MYSQL_DATABASE: laravel_dock
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: laravel
+
+  php:
+    image: php:7.4-fpm-alpine
+    container_name: php_laravel
+    restart: unless-stopped
+    tty: true
+    volumes:
+      - ./code:/code:rw,cached
+      - ./php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    networks:
+      - code-network
+
+  composer:
+    image: composer:latest
+    working_dir: /code
+    volumes:
+      - ./code:/code
+    command: install
+
+networks:
+  code-network:
+    driver: bridge

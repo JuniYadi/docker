@@ -1,0 +1,32 @@
+version: '3.3'
+
+services:
+  db:
+    image: mysql:5.7
+    container_name: mysql
+    restart: always
+    volumes:
+      - db_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: example
+    ports:
+      # just if you also want to access it directly from you host
+      # node neede for phpmyadmin
+      - "3307:3306"
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    environment:
+      - PMA_HOST=db
+      - PMA_PORT=3306
+      - PMA_ARBITRARY=1
+      - UPLOAD_LIMIT=1024M
+    restart: always
+    ports:
+      - 8081:80
+    links:
+      - db
+
+volumes:
+    db_data:
