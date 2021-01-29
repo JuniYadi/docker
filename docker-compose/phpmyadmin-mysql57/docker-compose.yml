@@ -4,7 +4,7 @@ services:
   db:
     image: mysql:5.7
     container_name: mysql
-    restart: always
+    restart: on-failure
     volumes:
       - db_data:/var/lib/mysql
     environment:
@@ -22,7 +22,7 @@ services:
       - PMA_PORT=3306
       - PMA_ARBITRARY=1
       - UPLOAD_LIMIT=1024M
-    restart: always
+    restart: on-failure
     ports:
       - 8081:80
     links:
