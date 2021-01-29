@@ -1,18 +1,24 @@
 version: '3.3'
 
 services:
-  mysql:
+  db:
     image: mysql:8
-    container_name: mysql
-    restart: always
+    command: --default-authentication-plugin=mysql_native_password
+    container_name: db
+    restart: on-failure
+    volumes: 
+      - db_mysql8_data:/var/lib/mysql
     environment:
       - MYSQL_ROOT_PASSWORD=password
     ports:
       - 3306:3306
 
   adminer:
-    image: dockette/adminer:full-php5
+    image: adminer
     container_name: adminer
-    restart: always
+    restart: on-failure
     ports:
-      - 8080:80
+      - 8080:8080
+
+volumes:
+    db_mysql8_data: {}
