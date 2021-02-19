@@ -1,0 +1,17 @@
+version: '3.3'
+
+services:
+  db:
+    image: postgres
+    container_name: postgres
+    restart: on-failure
+    environment:
+      POSTGRES_PASSWORD: example
+      PGDATA: /data/postgres
+    volumes: 
+    - pg_data:/data/postgres
+    ports: 
+    - "5432:5432"
+
+volumes:
+  pg_data:
