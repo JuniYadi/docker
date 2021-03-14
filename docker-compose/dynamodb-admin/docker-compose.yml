@@ -2,7 +2,7 @@ version: '3.3'
 
 services:
   db:
-    image: amazon/dynamodb-local
+    image: instructure/dynamo-local-admin
     container_name: dynamodb
     restart: on-failure
     ports: 
