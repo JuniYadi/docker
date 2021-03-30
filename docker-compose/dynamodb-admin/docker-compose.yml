@@ -1,9 +1,10 @@
-version: '3.3'
+version: "3.9"
 
 services:
   db:
     image: instructure/dynamo-local-admin
-    container_name: dynamodb
-    restart: on-failure
-    ports: 
+    restart: "no"
+    volumes:
+      - ./data:/var/lib/dynamodb:rw,cached
+    ports:
       - "8000:8000"
