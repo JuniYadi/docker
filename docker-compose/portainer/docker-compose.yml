@@ -2,7 +2,7 @@ services:
   portainer:
     image: portainer/portainer
     command: -H unix:///var/run/docker.sock
-    restart: always
+    restart: "no"
     ports:
       - 10000:9000
       - 10001:8000

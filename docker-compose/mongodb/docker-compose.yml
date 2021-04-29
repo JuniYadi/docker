@@ -1,9 +1,13 @@
-services:
+version: "3.9"
 
-  mongo:
+services:
+  db:
     image: mongo
-    container_name: mongodb
-    restart: on-failure
+    restart: "no"
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+      - ./database:/data/db
+    ports:
+      - 27017:27017

@@ -1,9 +1,11 @@
-version: '3.3'
+version: "3.9"
 
 services:
   redis:
     image: redis
-    container_name: redis
-    restart: on-failure
+    restart: "no"
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - ./data:/data
     ports:
       - "6379:6379"
