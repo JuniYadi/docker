@@ -5,13 +5,9 @@ services:
     image: public.ecr.aws/gravitational/teleport:12.1.1
     restart: always
     volumes:
-      - teleport_config:/etc/teleport
-      - teleport_data:/var/lib/teleport
+      - ~/teleport/config:/etc/teleport
+      - ~/teleport/data:/var/lib/teleport
     ports:
       - 3023:3023
       - 3025:3025
       - 3080:3080
-
-volumes:
-  teleport_config:
-  teleport_data:
