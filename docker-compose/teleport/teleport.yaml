@@ -13,9 +13,10 @@ auth_service:
   enabled: "yes"
   listen_addr: 0.0.0.0:3025
   public_addr: pam.premiumfast.net:3025
-  #proxy_listener_mode: multiplex
+  proxy_listener_mode: separate
 ssh_service:
   enabled: "yes"
+  listen_addr: 0.0.0.0:3022
   commands:
     - name: hostname
       command: [hostname]
@@ -27,4 +28,5 @@ proxy_service:
   acme: {}
   public_addr: pam.premiumfast.net:443
   ssh_public_addr: pam.premiumfast.net:3023
+  tunnel_listen_addr: 0.0.0.0:3024
   tunnel_public_addr: pam.premiumfast.net:3024
