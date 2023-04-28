@@ -1,0 +1,30 @@
+version: v3
+teleport:
+  nodename: pam.premiumfast.net
+  data_dir: /var/lib/teleport
+  log:
+    output: stderr
+    severity: INFO
+    format:
+      output: text
+  ca_pin: ""
+  diag_addr: ""
+auth_service:
+  enabled: "yes"
+  listen_addr: 0.0.0.0:3025
+  public_addr: pam.premiumfast.net:3025
+  #proxy_listener_mode: multiplex
+ssh_service:
+  enabled: "yes"
+  commands:
+    - name: hostname
+      command: [hostname]
+      period: 1m0s
+proxy_service:
+  enabled: "yes"
+  https_keypairs: []
+  https_keypairs_reload_interval: 0s
+  acme: {}
+  public_addr: pam.premiumfast.net:443
+  ssh_public_addr: pam.premiumfast.net:3023
+  tunnel_public_addr: pam.premiumfast.net:3024
