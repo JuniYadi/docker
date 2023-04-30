@@ -4,9 +4,14 @@ services:
   uptime:
     container_name: uptime-kuma
     image: louislam/uptime-kuma:1
-    restart: always
+    restart: on-failure
     volumes:
       - uptime_kuma:/app/data
+    dns:
+      - 1.1.1.1
+      - 1.0.0.1
+      - 8.8.8.8
+      - 8.8.4.4
     ports:
       - "127.0.0.1:3001:3001"
 
