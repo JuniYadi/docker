@@ -13,7 +13,7 @@ auth_service:
   enabled: "yes"
   listen_addr: 0.0.0.0:3025
   public_addr: pam.premiumfast.net:3025
-  #proxy_listener_mode: separate
+  proxy_listener_mode: separate
 ssh_service:
   enabled: "yes"
   listen_addr: 0.0.0.0:3022
@@ -31,3 +31,11 @@ proxy_service:
   ssh_public_addr: pam.premiumfast.net:3023
   tunnel_listen_addr: 0.0.0.0:3024
   tunnel_public_addr: pam.premiumfast.net:3024
+app_service:
+    enabled: yes
+    debug_app: true
+    apps:
+    - name: "uptime"
+      uri: "https://uptime.premiumfast.net"
+      labels:
+        env: "prod"
