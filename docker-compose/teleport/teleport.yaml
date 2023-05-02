@@ -27,6 +27,7 @@ proxy_service:
   https_keypairs_reload_interval: 0s
   acme: {}
   public_addr: pam.premiumfast.net:443
+  listen_addr: 0.0.0.0:3023
   ssh_public_addr: pam.premiumfast.net:3023
   tunnel_listen_addr: 0.0.0.0:3024
   tunnel_public_addr: pam.premiumfast.net:3024
