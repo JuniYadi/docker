@@ -16,7 +16,7 @@ docker build -t caddy .
 
 ```
 docker create --name caddy caddy
-docker cp caddy:/usr/bin/caddy /usr/bin/caddy
+docker cp caddy:/usr/bin/caddy .
 docker rm -f caddy
 ```
 
@@ -49,6 +49,7 @@ Requirements:
 ```
 sudo dpkg-divert --divert /usr/bin/caddy.default --rename /usr/bin/caddy
 sudo mv ./caddy /usr/bin/caddy.custom
+sudo chmod +x /usr/bin/caddy.custom
 sudo update-alternatives --install /usr/bin/caddy caddy /usr/bin/caddy.default 10
 sudo update-alternatives --install /usr/bin/caddy caddy /usr/bin/caddy.custom 50
 ```
@@ -64,3 +65,23 @@ update-alternatives --config caddy
 ```
 
 and following the on screen information.
+
+## Setup Cloudflare
+
+- Setup Cloudflare Token
+
+```
+echo "export CLOUDFLARE_AUTH_TOKEN=nF-el0dOklE4fM6U6z9lS0S2NIrKjJyiW23g85AR" >> ~/.bashrc
+source ~/.bashrc
+```
+
+- Setup Caddyfile
+
+```
+hostlocal.dev {
+  tls {
+    dns cloudflare {env.CLOUDFLARE_AUTH_TOKEN}
+    resolvers 1.1.1.1
+  }
+}
+```
