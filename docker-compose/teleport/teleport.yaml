@@ -13,7 +13,7 @@ auth_service:
   enabled: "yes"
   listen_addr: 0.0.0.0:3025
   public_addr: pam.premiumfast.net:3025
-  proxy_listener_mode: separate
+  #proxy_listener_mode: separate
 ssh_service:
   enabled: "yes"
   listen_addr: 0.0.0.0:3022
