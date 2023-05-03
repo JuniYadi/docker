@@ -37,5 +37,6 @@ app_service:
     apps:
     - name: "uptime"
       uri: "https://uptime.premiumfast.net"
+      insecure_skip_verify: true
       labels:
         env: "prod"
