@@ -7,6 +7,8 @@ services:
     volumes:
       - ~/teleport/config:/etc/teleport
       - ~/teleport/data:/var/lib/teleport
+    env_file:
+      - .env
     ports:
       - 3023:3023
       - 3024:3024
