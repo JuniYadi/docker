@@ -39,8 +39,9 @@ app_service:
       uri: "https://uptime.premiumfast.net"
       insecure_skip_verify: true
       labels:
-        env: "prod"
+        env: "premiumfastnet"
     - name: "aws-console-pfn"
       uri: "https://console.aws.amazon.com/ec2/v2/home"
       labels:
-        env: "prod"
+        aws_account_id: "057675665881"
+        env: "premiumfastnet"
