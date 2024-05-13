@@ -1,9 +1,7 @@
-version: '3.3'
-
 services:
   db:
     image: amazon/dynamodb-local
     container_name: dynamodb
     restart: on-failure
-    ports: 
+    ports:
       - "8000:8000"

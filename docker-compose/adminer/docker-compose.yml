@@ -1,5 +1,3 @@
-version: '3.3'
-
 services:
   adminer:
     image: dockette/adminer:full-php5
