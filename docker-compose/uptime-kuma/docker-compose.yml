@@ -6,7 +6,7 @@ services:
     image: louislam/uptime-kuma:${UPTIMEKUMA_VERSION}
     restart: on-failure
     volumes:
-      - uptime_kuma:/app/data
+      - ~/uptime/data:/app/data
     dns:
       - 1.1.1.1
       - 1.0.0.1
@@ -14,6 +14,3 @@ services:
       - 8.8.4.4
     ports:
       - "127.0.0.1:3001:3001"
-
-volumes:
-  uptime_kuma:
