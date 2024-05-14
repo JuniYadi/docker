@@ -1,6 +1,6 @@
 services:
   teleport:
-    image: public.ecr.aws/gravitational/teleport:${TELEPORT_VERSION}
+    image: public.ecr.aws/gravitational/teleport-distroless:${TELEPORT_VERSION}
     restart: always
     volumes:
       - ~/teleport/config:/etc/teleport
