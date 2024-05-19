@@ -12,6 +12,8 @@ services:
       - 8.8.4.4
     ports:
       - "127.0.0.1:3001:3001"
+    networks:
+      - ip6net
 
 networks:
   ip6net:
