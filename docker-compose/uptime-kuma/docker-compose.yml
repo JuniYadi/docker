@@ -2,7 +2,7 @@ services:
   uptime:
     container_name: uptime-kuma
     image: louislam/uptime-kuma:${UPTIMEKUMA_VERSION}
-    restart: on-failure
+    restart: always
     volumes:
       - ~/uptime/data:/app/data
     dns:
