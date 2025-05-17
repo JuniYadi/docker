@@ -1,10 +1,16 @@
-version: "3"
-
 services:
-  redis:
+  qdrant:
     image: qdrant/qdrant
-    restart: "on-failure"
+    restart: always
+    environment:
+      QDRANT__LOG_LEVEL: INFO
+      QDRANT__SERVICE__API_KEY: ${API_KEY}
+      QDRANT__SERVICE__HOST: 0.0.0.0
+      QDRANT__TELEMETRY_DISABLED: true
     volumes:
-      - ~/qdrant_data:/qdrant/storage
+      - qdrant_data:/qdrant/storage
     ports:
       - "127.0.0.1:6333:6333"
+
+volumes:
+  qdrant_data:
