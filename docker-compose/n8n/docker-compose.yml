@@ -9,8 +9,16 @@ services:
       N8N_PORT: "5678"
       N8N_PROTOCOL: "https"
       N8N_EDITOR_BASE_URL: "https://n8n.juniyadi.id"
+      WEBHOOK_URL: "https://n8n.juniyadi.id"
       N8N_PATH: "/"
+      N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: true
+      N8N_RUNNERS_ENABLED: true
     ports:
       - 127.0.0.1:5678:5678
     volumes:
-      - ./n8n/:/home/node/.n8n/
+      - n8n_data:/home/node/.n8n/
+      - ./n8n/reds.json:/home/node/reds.json
+      - ./n8n/workflows.json:/home/node/workflows.json
+
+volumes:
+  n8n_data:
