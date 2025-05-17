@@ -1,0 +1,16 @@
+services:
+  n8n:
+    image: n8nio/n8n:1.93.0
+    restart: always
+    environment:
+      GENERIC_TIMEZONE: "Asia/Jakarta"
+      TZ: "Asia/Jakarta"
+      N8N_HOST: "0.0.0.0"
+      N8N_PORT: "5678"
+      N8N_PROTOCOL: "https"
+      N8N_EDITOR_BASE_URL: "https://n8n.juniyadi.id"
+      N8N_PATH: "/"
+    ports:
+      - 127.0.0.1:5678:5678
+    volumes:
+      - ./n8n:/home/node/.n8n
