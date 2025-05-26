@@ -1,0 +1,23 @@
+services:
+  db:
+    image: mariadb:11.4
+    restart: "no"
+    volumes:
+      - ./data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+    ports:
+      - "127.0.0.1:3306:3306"
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    environment:
+      - PMA_HOST=db
+      - PMA_PORT=3306
+      - PMA_ARBITRARY=1
+      - UPLOAD_LIMIT=1024M
+    restart: "no"
+    ports:
+      - "127.0.0.1:8888:80"
+    links:
+      - db
