@@ -11,6 +11,8 @@ services:
       MARIADB_PASSWORD: MyN3wO445w0rd
     ports:
       - "127.0.0.1:3306:3306"
+    networks:
+      - db_network
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
@@ -22,5 +24,9 @@ services:
     restart: "no"
     ports:
       - "127.0.0.1:8888:80"
-    links:
-      - db
+    networks:
+      - db_network
+
+networks:
+  db_network:
+    driver: bridge
