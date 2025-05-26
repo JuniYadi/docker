@@ -5,7 +5,10 @@ services:
     volumes:
       - ./data:/var/lib/mysql
     environment:
-      MYSQL_ROOT_PASSWORD: password
+      MARIADB_ROOT_PASSWORD: MyN3wO445w0rd
+      MARIADB_DATABASE: pfnapp
+      MARIADB_USER: pfnapp
+      MARIADB_PASSWORD: MyN3wO445w0rd
     ports:
       - "127.0.0.1:3306:3306"
 
