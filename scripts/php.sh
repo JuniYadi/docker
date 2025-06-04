@@ -339,7 +339,7 @@ setup_laravel() {
         log "Application directory is empty. Installing Laravel..."
         
         # Install Laravel using Composer
-        composer create-project laravel/laravel . --prefer-dist --no-dev
+        composer create-project laravel/laravel . --prefer-dist --no-dev --quiet
         
         if [ $? -eq 0 ]; then
             log "Laravel installed successfully!"
@@ -363,7 +363,7 @@ setup_laravel() {
         # Check if it's a Laravel project and run composer install
         if [ -f "composer.json" ] && [ -f "artisan" ]; then
             log "Detected Laravel project. Running composer install..."
-            composer install --no-dev --optimize-autoloader
+            composer install --no-dev --optimize-autoloader --quiet
             
             # Set proper permissions
             chown -R www-data:www-data "$app_dir"
