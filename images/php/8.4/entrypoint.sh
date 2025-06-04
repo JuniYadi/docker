@@ -15,6 +15,12 @@ simple_log() {
 # Fetch and source global PHP configuration
 fetch_global_config() {
     simple_log "=== Fetching Global PHP Configuration ==="
+
+    if [ -f "$PHP_CONFIG_LOCAL" ]; then
+        simple_log "Global PHP configuration already exists at $PHP_CONFIG_LOCAL. Deleting old file."
+        rm -f "$PHP_CONFIG_LOCAL"
+    fi
+
     if command -v curl >/dev/null 2>&1; then
         simple_log "Downloading global PHP configuration using curl..."
         if curl -fsSL -o "$PHP_CONFIG_LOCAL" "$PHP_CONFIG_URL"; then
