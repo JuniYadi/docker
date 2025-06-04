@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MermaidJS Chart Example</title>
+    <!-- MermaidJS CDN -->
+    <script type="module">
+      import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+
+      mermaid.registerIconPacks([
+        {
+          name: "logos",
+          loader: () =>
+            fetch("https://unpkg.com/@iconify-json/logos@1/icons.json").then(
+              (res) => res.json()
+            ),
+        },
+      ]);
+    </script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 2em;
+      }
+      .mermaid {
+        background: #fff;
+        border-radius: 8px;
+        padding: 1em;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>MermaidJS Chart Example</h1>
+    <pre class="mermaid">
+flowchart TD
+
+  server1@{ icon: "logos:laravel", form: "square", label: "Laravel App 1", pos: "b", h: 60 }
+  server2@{ icon: "logos:laravel", form: "square", label: "Laravel App 2", pos: "b", h: 60 }
+  server3@{ icon: "logos:laravel", form: "square", label: "Laravel App 3", pos: "b", h: 60 }
+  server4@{ icon: "logos:laravel", form: "square", label: "laravel App 4", pos: "b", h: 60 }
+
+  cloudflare@{ icon: "logos:cloudflare-icon", form: "square", label: "Cloudflare", pos: "b", h: 60 }
+  loadbalancer@{ icon: "logos:aws-elb", form: "square", label: "Load Balancer", pos: "b", h: 60 }
+
+  kubeapi@{ icon: "logos:kubernetes", form: "square", label: "Service LB", pos: "b", h: 60 }
+
+  database@{ icon: "logos:mysql-icon", form: "square", label: "MySQL Database", pos: "b", h: 60 }
+  storage@{ icon: "logos:aws-s3", form: "square", label: "AWS S3 Storage", pos: "b", h: 60 }
+
+  subgraph cluster[Cluster]
+    direction LR
+
+    kubeapi
+    subgraph node2[Node 2]
+      direction TB
+
+      server1
+      server2
+    end
+
+    subgraph node1[Node 1]
+      direction TB
+
+      server3
+      server4
+    end
+  end
+
+  subgraph services[Services]
+    direction TB
+
+    database
+    storage
+  end
+
+  cloudflare --> loadbalancer
+  loadbalancer --> kubeapi
+
+  kubeapi --> |Load Balance| node1
+  kubeapi --> |Load Balance| node2
+
+  node1 --> services
+  node2 --> services
+
+  
+    </pre>
+    <p>Edit the Mermaid code above to create your own chart!</p>
+  </body>
+</html>
