@@ -52,7 +52,7 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 
 # Copy configurations
 COPY ./entrypoint.sh /entrypoint.sh
-COPY conf/nginx.conf /etc/nginx/nginx.conf
+# COPY conf/nginx.conf /etc/nginx/nginx.conf
 COPY conf/nginx-vhost.conf /etc/nginx/sites-available/default
 COPY conf/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY conf/php.ini /usr/local/etc/php/conf.d/php-base.ini
