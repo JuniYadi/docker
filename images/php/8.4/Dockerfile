@@ -48,13 +48,25 @@ RUN pecl install apcu \
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # Copy configurations
+COPY ./entrypoint.sh /entrypoint.sh
 COPY conf/nginx.conf /etc/nginx/sites-available/default
 COPY conf/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY conf/php.ini /usr/local/etc/php/conf.d/php-custom.ini
 
+# Create a non-root user
+RUN groupadd -g 1000 www && \
+    useradd -u 1000 -ms /bin/bash -g www www
 
-# Create directory for PHP-FPM socket
-RUN mkdir -p /var/run/php
+# Create directory for PHP-FPM socket with proper ownership
+RUN mkdir -p /var/run/php && \
+    chown -R www:www /var/run/php && \
+    chown -R www:www /var/www && \
+    rm -rf /var/www/html
+
+# Make entrypoint executable
+RUN chmod +x /entrypoint.sh
 
 EXPOSE 80
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+USER www
+
+ENTRYPOINT ["/entrypoint.sh"]

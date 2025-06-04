@@ -106,8 +106,8 @@ generate_fpm_conf() {
     local listen_config
     if [[ "$listen_type" == "socket" ]]; then
         listen_config="/var/run/php/php8.4-fpm.sock"
-        listen_owner="www-data"
-        listen_group="www-data"
+        listen_owner="www"
+        listen_group="www"
         listen_mode="0660"
     else
         listen_config="0.0.0.0:9000"
@@ -182,7 +182,7 @@ EOF
 
 # Check and setup Laravel application
 setup_laravel() {
-    local app_dir="/web"
+    local app_dir="/var/www"
     
     echo "[$(date)] Checking application directory: $app_dir"
     
@@ -201,7 +201,7 @@ setup_laravel() {
             echo "[$(date)] Laravel installed successfully!"
             
             # Set proper permissions
-            chown -R www-data:www-data "$app_dir"
+            chown -R www:www "$app_dir"
             chmod -R 755 "$app_dir"
             chmod -R 775 "$app_dir/storage" "$app_dir/bootstrap/cache"
             
@@ -222,7 +222,7 @@ setup_laravel() {
             composer install --no-dev --optimize-autoloader
             
             # Set proper permissions
-            chown -R www-data:www-data "$app_dir"
+            chown -R www:www "$app_dir"
             chmod -R 755 "$app_dir"
             chmod -R 775 "$app_dir/storage" "$app_dir/bootstrap/cache" 2>/dev/null || true
         fi
