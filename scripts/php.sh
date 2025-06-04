@@ -26,7 +26,7 @@ export DEFAULT_FPM_PM_MAX_REQUESTS=${FPM_PM_MAX_REQUESTS:-1000}
 export DEFAULT_FPM_LISTEN_TYPE=${FPM_LISTEN_TYPE:-port}
 
 # Application Defaults
-export DEFAULT_APP_DIR=${APP_DIR:-/var/www}
+export DEFAULT_APP_DIR=${APP_DIR:-/var/www/html}
 
 # Function to log with timestamp to stdout
 log() {
@@ -321,8 +321,17 @@ setup_laravel() {
     log "Checking application directory: $app_dir"
     
     # Create directory if it doesn't exist
-    mkdir -p "$app_dir"
+    if [ ! -d "$app_dir" ]; then
+        log "Application directory does not exist. Creating: $app_dir"
+        mkdir -p "$app_dir"
+    fi
+
     cd "$app_dir"
+
+    if [ -f "index.html" ]; then
+        log "index.html found in application directory. Deleting it to avoid conflicts."
+        rm -f index.html
+    fi
     
     # Check if directory is empty or just has hidden files
     if [ -z "$(ls -A "$app_dir" 2>/dev/null | grep -v '^\.')" ]; then
