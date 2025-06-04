@@ -170,7 +170,6 @@ generate_fpm_conf() {
     local pm_min_spare_servers=${FPM_PM_MIN_SPARE_SERVERS:-$calculated_min_spare}
     local pm_max_spare_servers=${FPM_PM_MAX_SPARE_SERVERS:-$calculated_max_spare}
     local pm_max_requests=${FPM_PM_MAX_REQUESTS:-1000}
-    local request_timeout=${FPM_REQUEST_TIMEOUT:-300}
     local listen_type=${FPM_LISTEN_TYPE:-port}
     
     # Log whether values are from env or calculated
@@ -225,9 +224,6 @@ pm.start_servers = $pm_start_servers
 pm.min_spare_servers = $pm_min_spare_servers
 pm.max_spare_servers = $pm_max_spare_servers
 pm.max_requests = $pm_max_requests
-
-; Timeouts
-request_timeout = ${request_timeout}s
 
 ; Logging
 access.log = /proc/self/fd/2
