@@ -317,6 +317,7 @@ EOF
 # Check and setup Laravel application
 setup_laravel() {
     local app_dir=${APP_DIR:-$DEFAULT_APP_DIR}
+    local index_html="index.nginx-debian.html"
     
     log "Checking application directory: $app_dir"
     
@@ -328,9 +329,9 @@ setup_laravel() {
 
     cd "$app_dir"
 
-    if [ -f "index.html" ]; then
-        log "index.html found in application directory. Deleting it to avoid conflicts."
-        rm -f index.html
+    if [ -f "$index_html" ]; then
+        log "$index_html found in application directory. Removing it."
+        rm -f "$index_html"
     fi
     
     # Check if directory is empty or just has hidden files
