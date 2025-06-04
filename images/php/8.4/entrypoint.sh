@@ -1,10 +1,26 @@
 #!/bin/bash
 
-# Redirect all output to stdout/stderr for Docker logging
-exec > >(tee -a /proc/1/fd/1)
-exec 2> >(tee -a /proc/1/fd/2)
+# Ensure all output goes to stdout/stderr for proper Kubernetes logging
+# Remove any existing redirections that might interfere with container logging
+set -e
 
-# Check for required commands and provide fallbacks
+# Ensure output is not buffered
+export PYTHONUNBUFFERED=1
+
+# Function to log with timestamp to stdout
+log() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"
+    # Force flush to ensure immediate output in Kubernetes
+    exec 1>&1
+}
+
+# Function to log errors with timestamp to stderr
+log_error() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] ERROR: $*" >&2
+    # Force flush to ensure immediate output in Kubernetes
+    exec 2>&2
+}
+
 check_commands() {
     local missing_commands=()
     
@@ -18,8 +34,8 @@ check_commands() {
     done
     
     if [ ${#missing_commands[@]} -gt 0 ]; then
-        echo "[$(date)] ERROR: Missing required commands: ${missing_commands[*]}" >&2
-        echo "[$(date)] Please ensure the Docker image is built correctly with all dependencies" >&2
+        log_error "Missing required commands: ${missing_commands[*]}"
+        log_error "Please ensure the Docker image is built correctly with all dependencies"
         exit 1
     fi
     
@@ -27,18 +43,17 @@ check_commands() {
     local optional_commands=("free" "nproc" "awk")
     for cmd in "${optional_commands[@]}"; do
         if ! command -v "$cmd" >/dev/null 2>&1; then
-            echo "[$(date)] WARNING: Command '$cmd' not found. Using fallback methods." >&2
+            log "WARNING: Command '$cmd' not found. Using fallback methods."
         fi
     done
     
-    echo "[$(date)] Command availability check completed successfully"
+    log "Command availability check completed successfully"
 }
 
-# Generate php.ini based on environment variables
 generate_php_ini() {
     local ini_file="/usr/local/etc/php/conf.d/php-custom.ini"
     
-    echo "[$(date)] Generating PHP configuration..."
+    log "Generating PHP configuration..."
     
     # Start with base configuration
     cat > "$ini_file" << EOF
@@ -63,14 +78,14 @@ EOF
         
         if [[ "$extension_value" == "1" || "$extension_value" == "true" || "$extension_value" == "on" ]]; then
             echo "extension=$extension_name" >> "$ini_file"
-            echo "[$(date)] Enabled extension: $extension_name"
+            log "Enabled extension: $extension_name"
         else
             echo "; extension=$extension_name  ; Disabled" >> "$ini_file"
-            echo "[$(date)] Disabled extension: $extension_name"
+            log "Disabled extension: $extension_name"
         fi
     done
     
-    echo "[$(date)] PHP configuration generated at $ini_file"
+    log "PHP configuration generated at $ini_file"
 }
 # ...existing code...
 
@@ -78,7 +93,7 @@ EOF
 generate_fpm_conf() {
     local conf_file="/usr/local/etc/php-fpm.d/www.conf"
     
-    echo "[$(date)] Generating PHP-FPM configuration..."
+    log "Generating PHP-FPM configuration..."
     
     # Calculate defaults based on system resources if env vars are not set
     calculate_fpm_defaults() {
@@ -98,7 +113,7 @@ generate_fpm_conf() {
         # Final fallback to a reasonable default
         if [ -z "$available_memory" ] || [ "$available_memory" -eq 0 ] 2>/dev/null; then
             available_memory=1024
-            echo "[$(date)] WARNING: Could not determine system memory. Using default: ${available_memory}MB"
+            log "WARNING: Could not determine system memory. Using default: ${available_memory}MB"
         fi
         
         # Get CPU cores with fallback
@@ -117,7 +132,7 @@ generate_fpm_conf() {
         # Final fallback to 1 core
         if [ -z "$cpu_cores" ] || [ "$cpu_cores" -eq 0 ] 2>/dev/null; then
             cpu_cores=1
-            echo "[$(date)] WARNING: Could not determine CPU cores. Using default: ${cpu_cores}"
+            log "WARNING: Could not determine CPU cores. Using default: ${cpu_cores}"
         fi
         
         # Calculate max_children based on memory (assuming ~50MB per PHP process)
@@ -141,8 +156,8 @@ generate_fpm_conf() {
         [ $calculated_max_spare -lt 5 ] && calculated_max_spare=5
         
         # Export calculated values for logging
-        echo "[$(date)] System resources: ${available_memory}MB RAM, ${cpu_cores} CPU cores"
-        echo "[$(date)] Calculated FPM defaults: max_children=${calculated_max_children}, start_servers=${calculated_start_servers}"
+        log "System resources: ${available_memory}MB RAM, ${cpu_cores} CPU cores"
+        log "Calculated FPM defaults: max_children=${calculated_max_children}, start_servers=${calculated_start_servers}"
     }
     
     # Calculate defaults first
@@ -159,12 +174,12 @@ generate_fpm_conf() {
     local listen_type=${FPM_LISTEN_TYPE:-port}
     
     # Log whether values are from env or calculated
-    echo "[$(date)] FPM Configuration source:"
-    echo "  pm_type: ${pm_type} $([ -n "$FPM_PM" ] && echo "(from env)" || echo "(default)")"
-    echo "  pm_max_children: ${pm_max_children} $([ -n "$FPM_PM_MAX_CHILDREN" ] && echo "(from env)" || echo "(calculated)")"
-    echo "  pm_start_servers: ${pm_start_servers} $([ -n "$FPM_PM_START_SERVERS" ] && echo "(from env)" || echo "(calculated)")"
-    echo "  pm_min_spare_servers: ${pm_min_spare_servers} $([ -n "$FPM_PM_MIN_SPARE_SERVERS" ] && echo "(from env)" || echo "(calculated)")"
-    echo "  pm_max_spare_servers: ${pm_max_spare_servers} $([ -n "$FPM_PM_MAX_SPARE_SERVERS" ] && echo "(from env)" || echo "(calculated)")"
+    log "FPM Configuration source:"
+    log "  pm_type: ${pm_type} $([ -n "$FPM_PM" ] && echo "(from env)" || echo "(default)")"
+    log "  pm_max_children: ${pm_max_children} $([ -n "$FPM_PM_MAX_CHILDREN" ] && echo "(from env)" || echo "(calculated)")"
+    log "  pm_start_servers: ${pm_start_servers} $([ -n "$FPM_PM_START_SERVERS" ] && echo "(from env)" || echo "(calculated)")"
+    log "  pm_min_spare_servers: ${pm_min_spare_servers} $([ -n "$FPM_PM_MIN_SPARE_SERVERS" ] && echo "(from env)" || echo "(calculated)")"
+    log "  pm_max_spare_servers: ${pm_max_spare_servers} $([ -n "$FPM_PM_MAX_SPARE_SERVERS" ] && echo "(from env)" || echo "(calculated)")"
     
     # Determine listen configuration
     local listen_config
@@ -240,15 +255,15 @@ php_value[session.save_path] = /tmp
 php_value[upload_tmp_dir] = /tmp
 EOF
 
-    echo "[$(date)] PHP-FPM configuration generated at $conf_file"
-    echo "[$(date)] FPM Settings: pm=$pm_type, max_children=$pm_max_children, start_servers=$pm_start_servers"
+    log "PHP-FPM configuration generated at $conf_file"
+    log "FPM Settings: pm=$pm_type, max_children=$pm_max_children, start_servers=$pm_start_servers"
 }
 
 # Check and setup Laravel application
 setup_laravel() {
     local app_dir="/var/www"
     
-    echo "[$(date)] Checking application directory: $app_dir"
+    log "Checking application directory: $app_dir"
     
     # Create directory if it doesn't exist
     mkdir -p "$app_dir"
@@ -256,13 +271,13 @@ setup_laravel() {
     
     # Check if directory is empty or just has hidden files
     if [ -z "$(ls -A "$app_dir" 2>/dev/null | grep -v '^\.')" ]; then
-        echo "[$(date)] Application directory is empty. Installing Laravel..."
+        log "Application directory is empty. Installing Laravel..."
         
         # Install Laravel using Composer
         composer create-project laravel/laravel . --prefer-dist --no-dev
         
         if [ $? -eq 0 ]; then
-            echo "[$(date)] Laravel installed successfully!"
+            log "Laravel installed successfully!"
             
             # Set proper permissions
             chown -R www-data:www-data "$app_dir"
@@ -274,15 +289,15 @@ setup_laravel() {
                 php artisan key:generate --ansi
             fi
         else
-            echo "[$(date)] ERROR: Failed to install Laravel" >&2
+            log_error "Failed to install Laravel"
             exit 1
         fi
     else
-        echo "[$(date)] Application directory contains files. Skipping Laravel installation."
+        log "Application directory contains files. Skipping Laravel installation."
         
         # Check if it's a Laravel project and run composer install
         if [ -f "composer.json" ] && [ -f "artisan" ]; then
-            echo "[$(date)] Detected Laravel project. Running composer install..."
+            log "Detected Laravel project. Running composer install..."
             composer install --no-dev --optimize-autoloader
             
             # Set proper permissions
@@ -295,7 +310,10 @@ setup_laravel() {
 
 # Main execution
 main() {
-    echo "[$(date)] Starting PHP-FPM + Nginx container..."
+    log "=== PHP-FPM + Nginx Container Starting ==="
+    log "Starting PHP-FPM + Nginx container..."
+    log "Container PID: $$"
+    log "Environment: $(printenv | grep -E '^(KUBERNETES|POD_|SERVICE_)' | head -3 || echo 'Not running in Kubernetes')"
     
     # Check for required commands
     check_commands
@@ -309,9 +327,23 @@ main() {
     # Setup Laravel application
     setup_laravel
     
-    echo "[$(date)] Starting services..."
+    log "Starting services..."
+    log "About to execute supervisord..."
+    
+    # Add some debugging information
+    log "Supervisord config file exists: $([ -f /etc/supervisor/conf.d/supervisord.conf ] && echo 'YES' || echo 'NO')"
+    log "PHP-FPM config file exists: $([ -f /usr/local/etc/php-fpm.d/www.conf ] && echo 'YES' || echo 'NO')"
+    log "Nginx config file exists: $([ -f /etc/nginx/nginx.conf ] && echo 'YES' || echo 'NO')"
+    
+    # Test that services can be started
+    log "Testing PHP-FPM configuration..."
+    php-fpm -t && log "PHP-FPM configuration test passed" || log_error "PHP-FPM configuration test failed"
+    
+    log "Testing Nginx configuration..."
+    nginx -t && log "Nginx configuration test passed" || log_error "Nginx configuration test failed"
     
     # Start supervisord (which will start nginx and php-fpm)
+    log "Executing supervisord with PID $$"
     exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
 
 }
