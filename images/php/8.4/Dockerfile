@@ -15,6 +15,8 @@ RUN apt-get update && apt-get install -y \
     unzip \
     nginx \
     supervisor \
+    gosu \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Install PHP extensions
@@ -67,6 +69,4 @@ RUN mkdir -p /var/run/php && \
 RUN chmod +x /entrypoint.sh
 
 EXPOSE 80
-USER www
-
 ENTRYPOINT ["/entrypoint.sh"]

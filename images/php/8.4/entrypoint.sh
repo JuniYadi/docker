@@ -245,7 +245,8 @@ main() {
     echo "[$(date)] Starting services..."
     
     # Start supervisord (which will start nginx and php-fpm)
-    exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+    exec gosu www /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+
 }
 
 # Run main function
