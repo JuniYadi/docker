@@ -15,7 +15,6 @@ RUN apt-get update && apt-get install -y \
     unzip \
     nginx \
     supervisor \
-    gosu \
     curl \
     procps \
     coreutils \
@@ -57,16 +56,12 @@ COPY conf/nginx.conf /etc/nginx/nginx.conf
 COPY conf/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY conf/php.ini /usr/local/etc/php/conf.d/php-base.ini
 
-# Create a non-root user
-RUN groupadd -g 1000 www && \
-    useradd -u 1000 -ms /bin/bash -g www www
-
-# Create directory for PHP-FPM socket with proper ownership
+# Create directories with proper ownership
 RUN mkdir -p /var/run/php && \
     mkdir -p /var/log/nginx && \
     mkdir -p /run && \
-    chown -R www:www /var/run/php && \
-    chown -R www:www /var/www && \
+    chown -R www-data:www-data /var/run/php && \
+    chown -R www-data:www-data /var/www && \
     rm -rf /var/www/html
 
 # Make entrypoint executable

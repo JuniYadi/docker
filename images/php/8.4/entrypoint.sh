@@ -9,7 +9,7 @@ check_commands() {
     local missing_commands=()
     
     # Essential commands that should be available
-    local required_commands=("php" "composer" "nginx" "supervisord" "gosu")
+    local required_commands=("php" "composer" "nginx" "supervisord")
     
     for cmd in "${required_commands[@]}"; do
         if ! command -v "$cmd" >/dev/null 2>&1; then
@@ -170,8 +170,8 @@ generate_fpm_conf() {
     local listen_config
     if [[ "$listen_type" == "socket" ]]; then
         listen_config="/var/run/php/php8.4-fpm.sock"
-        listen_owner="www"
-        listen_group="www"
+        listen_owner="www-data"
+        listen_group="www-data"
         listen_mode="0660"
     else
         listen_config="0.0.0.0:9000"
@@ -265,7 +265,7 @@ setup_laravel() {
             echo "[$(date)] Laravel installed successfully!"
             
             # Set proper permissions
-            chown -R www:www "$app_dir"
+            chown -R www-data:www-data "$app_dir"
             chmod -R 755 "$app_dir"
             chmod -R 775 "$app_dir/storage" "$app_dir/bootstrap/cache"
             
@@ -286,7 +286,7 @@ setup_laravel() {
             composer install --no-dev --optimize-autoloader
             
             # Set proper permissions
-            chown -R www:www "$app_dir"
+            chown -R www-data:www-data "$app_dir"
             chmod -R 755 "$app_dir"
             chmod -R 775 "$app_dir/storage" "$app_dir/bootstrap/cache" 2>/dev/null || true
         fi
@@ -312,7 +312,7 @@ main() {
     echo "[$(date)] Starting services..."
     
     # Start supervisord (which will start nginx and php-fpm)
-    exec gosu www /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+    exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
 
 }
 
