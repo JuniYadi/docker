@@ -51,9 +51,9 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 
 # Copy configurations
 COPY ./entrypoint.sh /entrypoint.sh
-COPY conf/nginx.conf /etc/nginx/sites-available/default
+COPY conf/nginx.conf /etc/nginx/nginx.conf
 COPY conf/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY conf/php.ini /usr/local/etc/php/conf.d/php-custom.ini
+COPY conf/php.ini /usr/local/etc/php/conf.d/php-base.ini
 
 # Create a non-root user
 RUN groupadd -g 1000 www && \
@@ -61,6 +61,8 @@ RUN groupadd -g 1000 www && \
 
 # Create directory for PHP-FPM socket with proper ownership
 RUN mkdir -p /var/run/php && \
+    mkdir -p /var/log/nginx && \
+    mkdir -p /run && \
     chown -R www:www /var/run/php && \
     chown -R www:www /var/www && \
     rm -rf /var/www/html
