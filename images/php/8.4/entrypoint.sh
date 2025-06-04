@@ -157,6 +157,8 @@ decorate_workers_output = no
 
 ; Security
 security.limit_extensions = .php
+php_admin_value[disable_functions] = exec,passthru,shell_exec,system
+php_admin_flag[allow_url_fopen] = off
 
 ; Environment variables
 clear_env = no
@@ -169,6 +171,9 @@ ping.path = /fpm-ping
 slowlog = /proc/self/fd/2
 request_slowlog_timeout = 10s
 
+; Custom settings for your application
+php_value[session.save_path] = /tmp
+php_value[upload_tmp_dir] = /tmp
 EOF
 
     echo "[$(date)] PHP-FPM configuration generated at $conf_file"
@@ -177,7 +182,7 @@ EOF
 
 # Check and setup Laravel application
 setup_laravel() {
-    local app_dir="/application"
+    local app_dir="/web"
     
     echo "[$(date)] Checking application directory: $app_dir"
     
