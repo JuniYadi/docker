@@ -181,7 +181,7 @@ calculate_fpm_system_defaults() {
 
 # Generate PHP-FPM www.conf based on environment variables
 generate_fpm_conf() {
-    local conf_file="/usr/local/etc/php-fpm.d/www.conf"
+    local conf_file="/usr/local/etc/php-fpm.d/laravel.conf"
     
     log "Generating PHP-FPM configuration..."
     
@@ -236,46 +236,7 @@ generate_fpm_conf() {
     log "  pm_min_spare_servers: ${pm_min_spare_servers} $([ -n "$FPM_PM_MIN_SPARE_SERVERS" ] && echo "(from env)" || echo "(calculated)")"
     log "  pm_max_spare_servers: ${pm_max_spare_servers} $([ -n "$FPM_PM_MAX_SPARE_SERVERS" ] && echo "(from env)" || echo "(calculated)")"
     
-    # Determine listen configuration
-    local listen_config
-    if [[ "$listen_type" == "socket" ]]; then
-        listen_config="/var/run/php/php8.4-fpm.sock"
-        listen_owner="www-data"
-        listen_group="www-data"
-        listen_mode="0660"
-        
-        # Create socket directory
-        mkdir -p /var/run/php
-    else
-        listen_config="0.0.0.0:9000"
-        listen_owner=""
-        listen_group=""
-        listen_mode=""
-    fi
-    
-    cat > "$conf_file" << EOF
-; Generated PHP-FPM configuration
-[www]
-
-; Pool user and group
-user = www-data
-group = www-data
-
-; Listen configuration
-listen = $listen_config
-EOF
-
-    # Add socket-specific configurations if using socket
-    if [[ "$listen_type" == "socket" ]]; then
-        cat >> "$conf_file" << EOF
-listen.owner = $listen_owner
-listen.group = $listen_group
-listen.mode = $listen_mode
-EOF
-    fi
-
     cat >> "$conf_file" << EOF
-
 ; Process manager configuration
 pm = $pm_type
 pm.max_children = $pm_max_children
@@ -284,30 +245,9 @@ pm.min_spare_servers = $pm_min_spare_servers
 pm.max_spare_servers = $pm_max_spare_servers
 pm.max_requests = $pm_max_requests
 
-; Logging
-access.log = /proc/self/fd/2
-catch_workers_output = yes
-decorate_workers_output = no
-
-; Security
-security.limit_extensions = .php
-php_admin_value[disable_functions] = exec,passthru,shell_exec,system
-php_admin_flag[allow_url_fopen] = off
-
-; Environment variables
-clear_env = no
-
 ; Status and ping pages
 pm.status_path = /fpm-status
 ping.path = /fpm-ping
-
-; Slow log
-slowlog = /proc/self/fd/2
-request_slowlog_timeout = 10s
-
-; Custom settings for your application
-php_value[session.save_path] = /tmp
-php_value[upload_tmp_dir] = /tmp
 EOF
 
     log "PHP-FPM configuration generated at $conf_file"
