@@ -4,6 +4,36 @@
 exec > >(tee -a /proc/1/fd/1)
 exec 2> >(tee -a /proc/1/fd/2)
 
+# Check for required commands and provide fallbacks
+check_commands() {
+    local missing_commands=()
+    
+    # Essential commands that should be available
+    local required_commands=("php" "composer" "nginx" "supervisord" "gosu")
+    
+    for cmd in "${required_commands[@]}"; do
+        if ! command -v "$cmd" >/dev/null 2>&1; then
+            missing_commands+=("$cmd")
+        fi
+    done
+    
+    if [ ${#missing_commands[@]} -gt 0 ]; then
+        echo "[$(date)] ERROR: Missing required commands: ${missing_commands[*]}" >&2
+        echo "[$(date)] Please ensure the Docker image is built correctly with all dependencies" >&2
+        exit 1
+    fi
+    
+    # Optional commands with warnings
+    local optional_commands=("free" "nproc" "awk")
+    for cmd in "${optional_commands[@]}"; do
+        if ! command -v "$cmd" >/dev/null 2>&1; then
+            echo "[$(date)] WARNING: Command '$cmd' not found. Using fallback methods." >&2
+        fi
+    done
+    
+    echo "[$(date)] Command availability check completed successfully"
+}
+
 # Generate php.ini based on environment variables
 generate_php_ini() {
     local ini_file="/usr/local/etc/php/conf.d/php-custom.ini"
@@ -52,9 +82,43 @@ generate_fpm_conf() {
     
     # Calculate defaults based on system resources if env vars are not set
     calculate_fpm_defaults() {
-        # Get available memory in MB
-        local available_memory=$(free -m | awk '/^Mem:/{print $2}')
-        local cpu_cores=$(nproc)
+        # Get available memory in MB with fallback
+        local available_memory
+        if command -v free >/dev/null 2>&1; then
+            available_memory=$(free -m | awk '/^Mem:/{print $2}' 2>/dev/null)
+        fi
+        
+        # If free command failed or not available, try /proc/meminfo
+        if [ -z "$available_memory" ] || [ "$available_memory" -eq 0 ] 2>/dev/null; then
+            if [ -r /proc/meminfo ]; then
+                available_memory=$(awk '/MemTotal:/ {print int($2/1024)}' /proc/meminfo 2>/dev/null)
+            fi
+        fi
+        
+        # Final fallback to a reasonable default
+        if [ -z "$available_memory" ] || [ "$available_memory" -eq 0 ] 2>/dev/null; then
+            available_memory=1024
+            echo "[$(date)] WARNING: Could not determine system memory. Using default: ${available_memory}MB"
+        fi
+        
+        # Get CPU cores with fallback
+        local cpu_cores
+        if command -v nproc >/dev/null 2>&1; then
+            cpu_cores=$(nproc 2>/dev/null)
+        fi
+        
+        # If nproc failed or not available, try /proc/cpuinfo
+        if [ -z "$cpu_cores" ] || [ "$cpu_cores" -eq 0 ] 2>/dev/null; then
+            if [ -r /proc/cpuinfo ]; then
+                cpu_cores=$(grep -c ^processor /proc/cpuinfo 2>/dev/null)
+            fi
+        fi
+        
+        # Final fallback to 1 core
+        if [ -z "$cpu_cores" ] || [ "$cpu_cores" -eq 0 ] 2>/dev/null; then
+            cpu_cores=1
+            echo "[$(date)] WARNING: Could not determine CPU cores. Using default: ${cpu_cores}"
+        fi
         
         # Calculate max_children based on memory (assuming ~50MB per PHP process)
         local calculated_max_children=$((available_memory / 50))
@@ -232,6 +296,9 @@ setup_laravel() {
 # Main execution
 main() {
     echo "[$(date)] Starting PHP-FPM + Nginx container..."
+    
+    # Check for required commands
+    check_commands
     
     # Generate PHP configuration
     generate_php_ini

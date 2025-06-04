@@ -17,6 +17,8 @@ RUN apt-get update && apt-get install -y \
     supervisor \
     gosu \
     curl \
+    procps \
+    coreutils \
     && rm -rf /var/lib/apt/lists/*
 
 # Install PHP extensions
