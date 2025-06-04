@@ -172,6 +172,34 @@ generate_fpm_conf() {
     local pm_max_requests=${FPM_PM_MAX_REQUESTS:-1000}
     local listen_type=${FPM_LISTEN_TYPE:-port}
     
+    # Validate that pm_max_children is a positive integer
+    if ! [[ "$pm_max_children" =~ ^[0-9]+$ ]] || [ "$pm_max_children" -le 0 ]; then
+        log_error "pm_max_children must be a positive integer, got: $pm_max_children"
+        pm_max_children=5
+        log "Using fallback value: pm_max_children=$pm_max_children"
+    fi
+    
+    # Validate other PM values are positive integers
+    if ! [[ "$pm_start_servers" =~ ^[0-9]+$ ]] || [ "$pm_start_servers" -le 0 ]; then
+        pm_start_servers=2
+        log "Invalid pm_start_servers, using fallback: $pm_start_servers"
+    fi
+    
+    if ! [[ "$pm_min_spare_servers" =~ ^[0-9]+$ ]] || [ "$pm_min_spare_servers" -le 0 ]; then
+        pm_min_spare_servers=1
+        log "Invalid pm_min_spare_servers, using fallback: $pm_min_spare_servers"
+    fi
+    
+    if ! [[ "$pm_max_spare_servers" =~ ^[0-9]+$ ]] || [ "$pm_max_spare_servers" -le 0 ]; then
+        pm_max_spare_servers=5
+        log "Invalid pm_max_spare_servers, using fallback: $pm_max_spare_servers"
+    fi
+    
+    if ! [[ "$pm_max_requests" =~ ^[0-9]+$ ]] || [ "$pm_max_requests" -le 0 ]; then
+        pm_max_requests=1000
+        log "Invalid pm_max_requests, using fallback: $pm_max_requests"
+    fi
+    
     # Log whether values are from env or calculated
     log "FPM Configuration source:"
     log "  pm_type: ${pm_type} $([ -n "$FPM_PM" ] && echo "(from env)" || echo "(default)")"
