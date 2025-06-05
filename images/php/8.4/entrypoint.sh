@@ -5,57 +5,95 @@ set -e
 
 # Configuration variables
 PHP_CONFIG_URL=${PHP_CONFIG_URL:-"https://raw.githubusercontent.com/JuniYadi/docker/refs/heads/master/scripts/php.sh"}
+NGINX_CONFIG_URL=${NGINX_CONFIG_URL:-"https://raw.githubusercontent.com/JuniYadi/docker/refs/heads/master/scripts/nginx.sh"}
+SUPERVISOR_CONFIG_URL=${SUPERVISOR_CONFIG_URL:-"https://raw.githubusercontent.com/JuniYadi/docker/refs/heads/master/scripts/supervisor.sh"}
+VHOST_CONFIG_URL=${VHOST_CONFIG_URL:-"https://raw.githubusercontent.com/JuniYadi/docker/refs/heads/master/scripts/nginx-vhost.sh"}
+
 PHP_CONFIG_LOCAL="/tmp/php-global-config.sh"
+NGINX_CONFIG_LOCAL="/tmp/nginx-global-config.sh"
+SUPERVISOR_CONFIG_LOCAL="/tmp/supervisor-global-config.sh"
+VHOST_CONFIG_LOCAL="/tmp/vhost-global-config.sh"
 
 # Simple logging function (before sourcing global config)
 simple_log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"
 }
 
-# Fetch and source global PHP configuration
-fetch_global_config() {
-    simple_log "=== Fetching Global PHP Configuration ==="
+# Generic function to fetch configuration files
+fetch_config_file() {
+    local config_name="$1"
+    local config_url="$2"
+    local config_local="$3"
+    
+    simple_log "=== Fetching $config_name Configuration ==="
 
-    if [ -f "$PHP_CONFIG_LOCAL" ]; then
-        simple_log "Global PHP configuration already exists at $PHP_CONFIG_LOCAL. Deleting old file."
-        rm -f "$PHP_CONFIG_LOCAL"
+    if [ -f "$config_local" ]; then
+        simple_log "$config_name configuration already exists at $config_local. Deleting old file."
+        rm -f "$config_local"
     fi
 
     if command -v curl >/dev/null 2>&1; then
-        simple_log "Downloading global PHP configuration using curl..."
-        if curl -fsSL -o "$PHP_CONFIG_LOCAL" "$PHP_CONFIG_URL"; then
-            simple_log "Global PHP configuration downloaded successfully"
+        simple_log "Downloading $config_name configuration using curl..."
+        if curl -fsSL -o "$config_local" "$config_url"; then
+            simple_log "$config_name configuration downloaded successfully"
         else
-            simple_log "WARNING: Failed to download global config via curl. Using fallback method."
-            fetch_fallback_config
+            simple_log "WARNING: Failed to download $config_name config via curl."
+            return 1
         fi
     elif command -v wget >/dev/null 2>&1; then
-        simple_log "Downloading global PHP configuration using wget..."
-        if wget -q -O "$PHP_CONFIG_LOCAL" "$PHP_CONFIG_URL"; then
-            simple_log "Global PHP configuration downloaded successfully"
+        simple_log "Downloading $config_name configuration using wget..."
+        if wget -q -O "$config_local" "$config_url"; then
+            simple_log "$config_name configuration downloaded successfully"
         else
-            simple_log "WARNING: Failed to download global config via wget. Using fallback method."
-            fetch_fallback_config
+            simple_log "WARNING: Failed to download $config_name config via wget."
+            return 1
         fi
     else
-        simple_log "WARNING: Neither curl nor wget available. Using fallback method."
-        fetch_fallback_config
+        simple_log "WARNING: Neither curl nor wget available."
+        return 1
     fi
+    
     # Validate the downloaded file
-    if [[ -f "$PHP_CONFIG_LOCAL" ]] && [[ -s "$PHP_CONFIG_LOCAL" ]]; then
-        if head -1 "$PHP_CONFIG_LOCAL" | grep -q "#!/bin/bash"; then
-            simple_log "Global PHP configuration validated successfully"
-            chmod +x "$PHP_CONFIG_LOCAL"
-            source "$PHP_CONFIG_LOCAL"
-            simple_log "Global PHP configuration loaded successfully"
+    if [[ -f "$config_local" ]] && [[ -s "$config_local" ]]; then
+        if head -1 "$config_local" | grep -q "#!/bin/bash"; then
+            simple_log "$config_name configuration validated successfully"
+            chmod +x "$config_local"
+            source "$config_local"
+            simple_log "$config_name configuration loaded successfully"
             return 0
         else
-            simple_log "WARNING: Downloaded file is not a valid bash script. Using fallback."
-            fetch_fallback_config
+            simple_log "WARNING: Downloaded $config_name file is not a valid bash script."
+            return 1
         fi
     else
-        simple_log "WARNING: Downloaded file is empty or missing. Using fallback."
+        simple_log "WARNING: Downloaded $config_name file is empty or missing."
+        return 1
+    fi
+}
+
+# Fetch and source global PHP configuration
+fetch_global_config() {
+    if ! fetch_config_file "PHP" "$PHP_CONFIG_URL" "$PHP_CONFIG_LOCAL"; then
         fetch_fallback_config
+    fi
+}
+
+# Fetch additional configuration scripts
+fetch_nginx_config() {
+    if ! fetch_config_file "Nginx" "$NGINX_CONFIG_URL" "$NGINX_CONFIG_LOCAL"; then
+        simple_log "WARNING: Failed to fetch Nginx configuration. Nginx will use default settings."
+    fi
+}
+
+fetch_supervisor_config() {
+    if ! fetch_config_file "Supervisor" "$SUPERVISOR_CONFIG_URL" "$SUPERVISOR_CONFIG_LOCAL"; then
+        simple_log "WARNING: Failed to fetch Supervisor configuration. Supervisor will use default settings."
+    fi
+}
+
+fetch_vhost_config() {
+    if ! fetch_config_file "VHost" "$VHOST_CONFIG_URL" "$VHOST_CONFIG_LOCAL"; then
+        simple_log "WARNING: Failed to fetch VHost configuration. VHost will use default settings."
     fi
 }
 
@@ -84,25 +122,68 @@ EOF
 
 # Entrypoint main logic
 main() {
+    # Fetch all configuration scripts
     fetch_global_config
-    # Now all functions (log, log_error, check_commands, generate_php_ini, generate_fpm_conf, setup_laravel, etc) are available
+    fetch_nginx_config
+    fetch_supervisor_config
+    fetch_vhost_config
+    
+    # Now all functions are available from the loaded configuration scripts
     log "=== PHP-FPM + Nginx Container Starting ==="
     log "Starting PHP-FPM + Nginx container..."
     log "Container PID: $$"
     log "Environment: $(printenv | grep -E '^(KUBERNETES|POD_|SERVICE_)' | head -3 || echo 'Not running in Kubernetes')"
-    check_commands
-    generate_php_ini
-    generate_fpm_conf
-    setup_laravel
+    
+    # Initialize all configurations
+    log "=== Initializing All Configurations ==="
+    
+    # Initialize PHP configuration (from php.sh)
+    if declare -f init_php_global_config >/dev/null; then
+        init_php_global_config
+    else
+        log "WARNING: init_php_global_config function not available, using basic PHP setup"
+        check_commands
+        generate_php_ini
+        generate_fpm_conf
+        setup_laravel
+    fi
+    
+    # Initialize Nginx configuration (from nginx.sh)
+    if declare -f init_nginx_config >/dev/null; then
+        init_nginx_config
+    else
+        log "WARNING: init_nginx_config function not available, using default Nginx configuration"
+    fi
+    
+    # Initialize VHost configuration (from nginx-vhost.sh)
+    if declare -f init_vhost_config >/dev/null; then
+        init_vhost_config
+    else
+        log "WARNING: init_vhost_config function not available, using default VHost configuration"
+    fi
+    
+    # Initialize Supervisor configuration (from supervisor.sh) - Must be last
+    if declare -f init_supervisor_config >/dev/null; then
+        init_supervisor_config
+    else
+        log "WARNING: init_supervisor_config function not available, using default Supervisor configuration"
+    fi
+    
+    log "=== All Configurations Initialized ==="
+    
+    # Final configuration tests
     log "Starting services..."
     log "About to execute supervisord..."
     log "Supervisord config file exists: $([ -f /etc/supervisor/conf.d/supervisord.conf ] && echo 'YES' || echo 'NO')"
-    log "PHP-FPM config file exists: $([ -f /usr/local/etc/php-fpm.d/www.conf ] && echo 'YES' || echo 'NO')"
+    log "PHP-FPM config file exists: $([ -f /usr/local/etc/php-fpm.d/laravel.conf ] && echo 'YES' || echo 'NO')"
     log "Nginx config file exists: $([ -f /etc/nginx/nginx.conf ] && echo 'YES' || echo 'NO')"
+    
     log "Testing PHP-FPM configuration..."
     php-fpm -t && log "PHP-FPM configuration test passed" || log_error "PHP-FPM configuration test failed"
+    
     log "Testing Nginx configuration..."
     nginx -t && log "Nginx configuration test passed" || log_error "Nginx configuration test failed"
+    
     log "Executing supervisord with PID $$"
     exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
 }
