@@ -65,7 +65,7 @@ generate_nginx_program() {
     
     cat >> "$supervisor_conf" << EOF
 [program:nginx]
-command=${NGINX_COMMAND:-nginx -g "daemon off;"}
+command=${NGINX_COMMAND:-"nginx -g \"daemon off;\""}
 autostart=${NGINX_AUTOSTART:-$DEFAULT_NGINX_AUTOSTART}
 autorestart=${NGINX_AUTORESTART:-$DEFAULT_NGINX_AUTORESTART}
 stdout_logfile=${NGINX_STDOUT_LOGFILE:-/dev/stdout}
