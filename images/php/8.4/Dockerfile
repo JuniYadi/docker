@@ -21,9 +21,9 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install PHP extensions
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-configure intl \
-    && docker-php-ext-install -j$(nproc) \
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg && \
+    docker-php-ext-configure intl && \
+    docker-php-ext-install -j$(nproc) \
         gd \
         zip \
         pdo \
@@ -38,8 +38,8 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
         exif \
         pcntl \
         sockets && \
-        pecl install redis && docker-php-ext-enable redis && \
-        pecl install apcu && docker-php-ext-enable apcu
+    pecl install redis && docker-php-ext-enable redis && \
+    pecl install apcu && docker-php-ext-enable apcu
 
 # Install Composer globally
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer

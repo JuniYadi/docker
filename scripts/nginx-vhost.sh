@@ -17,14 +17,12 @@ export DEFAULT_VHOST_TYPE=${VHOST_TYPE:-laravel}
 # Generate custom virtual host configuration
 generate_vhost_config() {
     local vhost_name=${1:-default}
-    local vhost_conf="/etc/nginx/sites-available/${vhost_name}.conf"
-    local vhost_enabled="/etc/nginx/sites-enabled/${vhost_name}.conf"
+    local vhost_conf="/etc/nginx/conf.d/${vhost_name}.conf"
     
     log "Generating virtual host configuration for: $vhost_name"
     
     # Create directories if they don't exist
-    mkdir -p /etc/nginx/sites-available
-    mkdir -p /etc/nginx/sites-enabled
+    mkdir -p /etc/nginx/conf.d
     
     # Get vhost-specific environment variables or use defaults
     local listen_port_var="VHOST_${vhost_name^^}_LISTEN_PORT"
@@ -48,7 +46,7 @@ generate_vhost_config() {
     # Use defaults if not set
     listen_port=${listen_port:-$DEFAULT_VHOST_LISTEN_PORT}
     server_name=${server_name:-$DEFAULT_VHOST_SERVER_NAME}
-    root_dir=${root_dir:-$DEFAULT_VHOST_ROOT}
+    root_dir=${root_dir:-${APP_DIR:-/var/www/html}/public}
     index_files=${index_files:-$DEFAULT_VHOST_INDEX}
     vhost_type=${vhost_type:-$DEFAULT_VHOST_TYPE}
     
@@ -127,12 +125,6 @@ EOF
 
     # Close server block
     echo "}" >> "$vhost_conf"
-
-    # Enable the vhost by creating symlink
-    if [ ! -L "$vhost_enabled" ]; then
-        ln -sf "$vhost_conf" "$vhost_enabled"
-        log "Virtual host $vhost_name enabled"
-    fi
 
     log "Virtual host configuration generated: $vhost_conf"
     log "VHost $vhost_name: server_name=$server_name, root=$root_dir, type=$vhost_type"
@@ -325,10 +317,16 @@ generate_multiple_vhosts() {
 # Remove default nginx site if it exists
 remove_default_nginx_site() {
     local default_site="/etc/nginx/sites-enabled/default"
+    local default_conf="/etc/nginx/conf.d/default.conf"
     
     if [ -f "$default_site" ] || [ -L "$default_site" ]; then
         log "Removing default nginx site configuration"
         rm -f "$default_site"
+    fi
+    
+    if [ -f "$default_conf" ]; then
+        log "Removing existing default.conf"
+        rm -f "$default_conf"
     fi
 }
 
@@ -339,15 +337,12 @@ init_vhost_config() {
     # Remove default nginx site
     remove_default_nginx_site
     
+    # Always generate default vhost first
+    log "Generating default vhost configuration"
+    generate_vhost_config "default"
+    
     # Generate multiple virtual hosts if configured
     generate_multiple_vhosts
-    
-    # Generate default vhost if no custom vhosts are configured
-    local has_custom_vhosts=$(env | grep '^VHOST_.*_SERVER_NAME=' | wc -l)
-    if [ "$has_custom_vhosts" -eq 0 ]; then
-        log "No custom virtual hosts found, generating default vhost"
-        generate_vhost_config "default"
-    fi
     
     log "=== Virtual Host Configuration Complete ==="
 }

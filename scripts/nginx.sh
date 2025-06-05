@@ -111,7 +111,6 @@ EOF
     cat >> "$nginx_conf" << EOF
     # VHost configuration
     include /etc/nginx/conf.d/*.conf;
-    include /etc/nginx/sites-enabled/*;
 }
 EOF
 
@@ -239,9 +238,6 @@ init_nginx_config() {
     
     # Generate main nginx configuration
     generate_nginx_conf
-    
-    # Generate default site configuration
-    generate_nginx_default_site
     
     # Test nginx configuration
     if command -v nginx >/dev/null 2>&1; then
