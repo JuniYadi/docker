@@ -37,25 +37,15 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
         opcache \
         exif \
         pcntl \
-        sockets
-
-# Install Redis extension
-RUN pecl install redis \
-    && docker-php-ext-enable redis
-
-# Install APCu (optional but recommended for caching)
-RUN pecl install apcu \
-    && docker-php-ext-enable apcu
+        sockets && \
+        pecl install redis && docker-php-ext-enable redis && \
+        pecl install apcu && docker-php-ext-enable apcu
 
 # Install Composer globally
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # Copy configurations
 COPY ./entrypoint.sh /entrypoint.sh
-COPY conf/nginx.conf /etc/nginx/nginx.conf
-COPY conf/nginx-vhost.conf /etc/nginx/sites-available/default
-COPY conf/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY conf/php.ini /usr/local/etc/php/conf.d/php-base.ini
 
 # Create directories with proper ownership
 RUN mkdir -p /var/run/php && \
@@ -65,6 +55,5 @@ RUN mkdir -p /var/run/php && \
 
 # Make entrypoint executable
 RUN chmod +x /entrypoint.sh
-
 EXPOSE 80
 ENTRYPOINT ["/entrypoint.sh"]
