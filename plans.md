@@ -1,21 +1,64 @@
-We want create a customize Docker Image for PHP FPM with the following features:
+# Nginx vs Nginx Unit for PHP Laravel Applications
 
-1. it's using nginx as a web server
-2. it's has preinstalled php extensions that can be enable or disable using env
+## Traditional Nginx + PHP-FPM
 
-what the missing is
+### Pros
+- **Mature and Battle-tested**: Widely adopted with extensive community support and documentation
+- **Proven Performance**: Optimized for high-traffic scenarios with excellent caching capabilities
+- **Flexibility**: Extensive module ecosystem and configuration options
+- **Resource Efficiency**: Lower memory footprint, especially for static content serving
+- **Debugging Tools**: Rich ecosystem of monitoring and debugging tools
+- **Laravel Compatibility**: Well-established patterns and configurations for Laravel applications
+- **Separation of Concerns**: Clear distinction between web server and PHP processing
+- **Process Isolation**: PHP-FPM crashes don't affect the web server
 
-1. all still depend on Dockerfile, so everytime we need update config file, we need to rebuild the image
-2. we need dynamic configuration for nginx, supervisor, etc. why
-   - we want to use the same image for different projects, so we need to be able to change the configuration without rebuilding the image
-   - we want to be able to change the configuration without stopping the container
+### Cons
+- **Complex Configuration**: Requires managing two separate services (Nginx + PHP-FPM)
+- **Socket Communication Overhead**: IPC between Nginx and PHP-FPM adds latency
+- **Configuration Duplication**: Need to configure routing rules in both Nginx and Laravel
+- **Deployment Complexity**: Multiple services to coordinate during deployments
+- **Resource Overhead**: Running two separate processes consumes more system resources
 
-## Tasks
+## Nginx Unit
 
-We already have a php image with all in `images/php/8.4`, now we need centralize the configuration files from this directory `scripts`, we already implement `php.sh` that called from `entrypoint.sh`, now we need to implement the following:
+### Pros
+- **Unified Architecture**: Single process handles both web serving and PHP execution
+- **Dynamic Configuration**: RESTful API for runtime configuration changes without restarts
+- **Direct PHP Integration**: Eliminates socket communication overhead between web server and PHP
+- **Simplified Deployment**: Single binary to manage and deploy
+- **Language Agnostic**: Can run multiple language runtimes (PHP, Python, Node.js) simultaneously
+- **Hot Reconfiguration**: Change settings without service interruption
+- **Better Resource Utilization**: More efficient memory usage for mixed workloads
 
-1. `nginx.sh` to generate the nginx configuration file
-2. `supervisor.sh` to generate the supervisor configuration file
-3. `nginx-vhost.sh` to generate the nginx vhost configuration file
+### Cons
+- **Less Mature**: Newer technology with smaller community and fewer production deployments
+- **Limited Ecosystem**: Fewer third-party modules and integrations compared to traditional Nginx
+- **Documentation Gaps**: Less comprehensive documentation and fewer tutorials
+- **Debugging Complexity**: Single process makes troubleshooting more challenging
+- **Performance Trade-offs**: May not match traditional Nginx performance for pure static content
+- **Laravel Integration**: Fewer established patterns and best practices
+- **Risk Factor**: Single point of failure - if Unit crashes, entire application goes down
 
-what we want to achieve is to have a single entrypoint script that will call all the other scripts to generate the configuration files and start the services.
+## Recommendation for Laravel Applications
+
+For **production Laravel applications**, **traditional Nginx + PHP-FPM** is recommended because:
+
+1. **Stability**: Proven track record in high-traffic environments
+2. **Laravel Ecosystem**: Better integration with Laravel deployment tools and practices
+3. **Community Support**: Extensive knowledge base and troubleshooting resources
+4. **Performance**: Optimized for typical Laravel workloads with static assets
+
+**Consider Nginx Unit** for:
+- Development environments requiring rapid configuration changes
+- Microservices architectures with multiple language runtimes
+- Applications where unified configuration management is prioritized
+- Teams comfortable with newer technologies and willing to invest in learning
+
+## Migration Path
+
+If considering a move to Nginx Unit:
+1. Start with development/staging environments
+2. Thoroughly test performance under realistic load
+3. Establish monitoring and debugging procedures
+4. Gradually migrate non-critical services first
+5. Maintain fallback capability to traditional Nginx + PHP-FPM
