@@ -13,13 +13,21 @@
   },
   "settings": {
     "http": {
-      "server_version": false
+      "server_version": false,
+      "real_ip_header": "X-Forwarded-For",
+      "real_ip_from": [
+        "10.0.0.0/8",
+        "172.16.0.0/12",
+        "192.168.0.0/16",
+        "127.0.0.1/32"
+      ]
     }
   },
   "access_log": {
     "path": "/dev/stdout",
     "format": {
       "remote_addr": "$remote_addr",
+      "client_ip": "$client_ip",
       "time_local": "$time_local",
       "message": "$request_line",
       "status": "$status",
