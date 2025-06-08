@@ -21,7 +21,7 @@
     "format": {
       "remote_addr": "$remote_addr",
       "time_local": "$time_local",
-      "request_line": "$request_line",
+      "message": "$request_line",
       "status": "$status",
       "method": "$method",
       "request_id": "$request_id",
