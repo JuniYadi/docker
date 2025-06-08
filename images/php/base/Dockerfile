@@ -1,4 +1,6 @@
-FROM unit:1.32.0-php8.3
+FROM unit:1.34.2-php8.4
+
+ENV TZ="Asia/Jakarta"
 
 # Install additional packages for CLI operations
 RUN apt-get update && apt-get install -y \
@@ -16,15 +18,8 @@ RUN mkdir -p /var/www/html && \
     chown -R unit:unit /var/www/html
 
 # Copy Unit configuration
-COPY unit-config.json /docker-entrypoint.d/
-
-# Create a script to handle both web server and CLI commands
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
-WORKDIR /var/www/html
+COPY unit-config.json /docker-entrypoint.d/config.json
 
 EXPOSE 80
 
-ENTRYPOINT ["/entrypoint.sh"]
-CMD ["web"]
+CMD ["unitd", "--no-daemon", "--control", "unix:/var/run/control.sock"]

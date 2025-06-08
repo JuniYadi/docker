@@ -1,0 +1,34 @@
+{
+  "listeners": {
+    "*:80": {
+      "pass": "applications/php_app"
+    }
+  },
+  "applications": {
+    "php_app": {
+      "type": "php",
+      "root": "/var/www/html",
+      "index": "index.php"
+    }
+  },
+  "settings": {
+    "http": {
+      "server_version": false
+    }
+  },
+  "access_log": {
+    "path": "/dev/stdout",
+    "format": {
+      "remote_addr": "$remote_addr",
+      "time_local": "$time_local",
+      "request_line": "$request_line",
+      "status": "$status",
+      "method": "$method",
+      "request_id": "$request_id",
+      "request_uri": "$request_uri",
+      "body_bytes_sent": "$body_bytes_sent",
+      "header_referer": "$header_referer",
+      "user_agent": "$header_user_agent"
+    }
+  }
+}

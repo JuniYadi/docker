@@ -1,0 +1,7 @@
+services:
+  php-unit-web:
+    build: .
+    ports:
+      - "8080:80"
+    volumes:
+      - ./unit-config.json:/docker-entrypoint.d/config.json
