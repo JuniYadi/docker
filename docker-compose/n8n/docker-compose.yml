@@ -3,9 +3,6 @@ services:
     image: n8nio/n8n
     restart: always
     ports:
-      - 127.0.0.1:5678:5678
+      - 5678:5678
     volumes:
-      - n8n_data:/home/node/.n8n/
-
-volumes:
-  n8n_data:
+      - ./n8n:/home/node/.n8n/
