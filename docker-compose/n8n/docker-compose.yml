@@ -2,6 +2,8 @@ services:
   n8n:
     image: n8nio/n8n
     restart: always
+    env_file:
+      - .env
     ports:
       - 5678:5678
     volumes:
