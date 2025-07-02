@@ -11,4 +11,4 @@ services:
     image: redis/redisinsight
     restart: "always"
     ports:
-      - "127.0.0.1:5540:5540"
+      - "5540:5540"
